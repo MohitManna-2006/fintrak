@@ -140,11 +140,11 @@ export default function DashboardPage() {
   const chartH = isMobile ? 180 : 218;
 
   return (
-    <div className="px-4 pt-4 pb-6 lg:px-[34px] lg:pt-[30px] lg:pb-[40px]" style={{ maxWidth: 1100, fontFamily: "var(--font-figtree), sans-serif" }}>
+    <div style={{ width: "100%", maxWidth: 1100, padding: "32px 40px 48px", fontFamily: "var(--font-figtree), sans-serif" }}>
 
       {/* HEADER */}
       <div className="flex flex-col items-start lg:flex-row lg:items-end lg:justify-between" style={{
-        paddingBottom: 22, marginBottom: 26,
+        paddingBottom: 24, marginBottom: 30,
         borderBottom: "1px solid rgba(255,255,255,0.055)",
         position: "relative",
       }}>
@@ -180,19 +180,22 @@ export default function DashboardPage() {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-[10px]" style={{ marginBottom: 16 }}>
+      <div className="stats grid grid-cols-2 gap-3 lg:grid-cols-4" style={{ marginBottom: 18 }}>
         {[
-          { label: "INCOME", val: 4500, prefix: "$", color: "#00c896", delta: "+12%", sub: "vs FEB" },
-          { label: "EXPENSES", val: 1536, prefix: "$", color: "#ff4455", delta: "−8%", sub: "vs FEB" },
-          { label: "NET BALANCE", val: 2964, prefix: "$", color: "#f0f0f4", delta: null, sub: "after expenses" },
-          { label: "TRANSACTIONS", val: 8, prefix: "", color: "#e8a000", delta: null, sub: "this month" },
+          { type: "income", label: "INCOME", val: 4500, prefix: "$", color: "#00c896", delta: "+12%", sub: "vs FEB" },
+          { type: "expense", label: "EXPENSES", val: 1536, prefix: "$", color: "#ff4455", delta: "−8%", sub: "vs FEB" },
+          { type: "balance", label: "NET BALANCE", val: 2964, prefix: "$", color: "#f0f0f4", delta: null, sub: "after expenses" },
+          { type: "txcount", label: "TRANSACTIONS", val: 8, prefix: "", color: "#e8a000", delta: null, sub: "this month" },
         ].map((s, i) => (
-          <div key={s.label} className="px-[14px] pt-3 pb-[14px] lg:px-[18px] lg:pt-4 lg:pb-[18px]" style={{
+          <div key={s.label} className={`stat-card stat-${s.type}`} style={{
             background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.055)",
-            borderRadius: 8,
+            borderRadius: 10,
+            padding: "20px 22px 22px",
+            position: "relative",
+            overflow: "hidden",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#72727e" }}>{s.label}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--t2, #72727e)" }}>{s.label}</span>
               {s.delta && (
                 <span style={{
                   fontFamily: "var(--font-space-mono)", fontSize: 9.5,
@@ -205,7 +208,7 @@ export default function DashboardPage() {
             <div className="text-[22px] lg:text-[28px]" style={{ fontFamily: "var(--font-space-mono)", fontWeight: 700, letterSpacing: "-1.5px", color: s.color, fontVariantNumeric: "tabular-nums" }}>
               <Count to={s.val} prefix={s.prefix} delay={i * 80} />
             </div>
-            <div style={{ marginTop: 8, fontSize: 10.5, color: "#4a4a56" }}>{s.sub}</div>
+            <div style={{ marginTop: 12, fontSize: 10, color: "#4a4a56", fontFamily: "Space Mono, monospace", letterSpacing: "0.04em" }}>{s.sub}</div>
           </div>
         ))}
       </div>
@@ -344,6 +347,39 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      <style>{`
+        .stat-card::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          pointer-events: none;
+        }
+
+        .stat-card:hover::after {
+          opacity: 1;
+        }
+
+        .stat-income::after {
+          background: linear-gradient(90deg, #00c896, transparent);
+        }
+
+        .stat-expense::after {
+          background: linear-gradient(90deg, #ff4455, transparent);
+        }
+
+        .stat-balance::after {
+          background: linear-gradient(90deg, #9d7fea, transparent);
+        }
+
+        .stat-txcount::after {
+          background: linear-gradient(90deg, #e8a000, transparent);
+        }
+      `}</style>
     </div>
   );
 }
