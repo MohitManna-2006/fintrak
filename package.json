@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "PRISMA_DB_MODE=schema prisma db push",
+    "db:pull": "PRISMA_DB_MODE=schema prisma db pull",
+    "db:validate": "PRISMA_DB_MODE=schema prisma validate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
