@@ -13,6 +13,10 @@ model User {
   image         String?
   emailVerified DateTime?
   createdAt     DateTime       @default(now())
+  onboarded     Boolean        @default(false)
+  monthlyIncome Float?
+  currency      String         @default("USD")
+  financialGoal String?
   accounts      Account[]
   sessions      Session[]
   transactions  Transaction[]
