@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  AlertTriangle,
+  BarChart2,
   Bell,
+  Check,
   CreditCard,
   Heart,
   LayoutDashboard,
@@ -17,6 +20,37 @@ import {
   X,
 } from "lucide-react";
 import { signOutAction } from "./actions";
+
+type AppNotification = {
+  id: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+const NOTIF_CONFIG: Record<
+  string,
+  { label: string; icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>; color: string }
+> = {
+  budget_warning: { label: "Budget Alert", icon: AlertTriangle, color: "#e8a000" },
+  goal_pace: { label: "Goal at Risk", icon: Target, color: "#ff4455" },
+  category_spike: { label: "Spending Spike", icon: TrendingUp, color: "#ff4455" },
+  trajectory_alert: { label: "Month Forecast", icon: BarChart2, color: "#e8a000" },
+};
+
+const NOTIF_DEFAULT = { label: "Notification", icon: Bell, color: "#72727e" };
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -70,6 +104,73 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifAnchor, setNotifAnchor] = useState<"desktop" | "mobile">("desktop");
+  const [markingRead, setMarkingRead] = useState(false);
+  const sidebarBellRef = useRef<HTMLButtonElement>(null);
+  const mobileBellRef = useRef<HTMLButtonElement>(null);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (
+        notifPanelRef.current &&
+        !notifPanelRef.current.contains(e.target as Node) &&
+        sidebarBellRef.current !== e.target &&
+        mobileBellRef.current !== e.target
+      ) {
+        setNotifOpen(false);
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [notifOpen]);
+
+  function openNotif(anchor: "desktop" | "mobile") {
+    setNotifAnchor(anchor);
+    setNotifOpen((prev) => !prev);
+  }
+
+  async function markAllRead() {
+    if (unreadCount === 0) return;
+    setMarkingRead(true);
+    try {
+      await fetch("/api/notifications", { method: "PATCH" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } finally {
+      setMarkingRead(false);
+    }
+  }
+
   const displayName = user.name.trim();
   const displayEmail = user.email.trim();
   const avatarInitial = displayName.charAt(0).toUpperCase();
@@ -261,6 +362,53 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
                 {displayEmail}
               </div>
             </div>
+            <button
+              ref={sidebarBellRef}
+              type="button"
+              aria-label="Notifications"
+              onClick={() => openNotif("desktop")}
+              style={{
+                position: "relative",
+                width: 22,
+                height: 22,
+                border: "none",
+                background: "transparent",
+                color: unreadCount > 0 ? "#f0f0f4" : "#363640",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                padding: 0,
+                flexShrink: 0,
+              }}
+            >
+              <Bell size={12} strokeWidth={1.5} />
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -2,
+                    minWidth: 12,
+                    height: 12,
+                    borderRadius: 6,
+                    background: "#ff4455",
+                    border: "1.5px solid #0c0c0f",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "var(--font-space-mono)",
+                    fontSize: 7,
+                    fontWeight: 700,
+                    color: "#fff",
+                    lineHeight: 1,
+                    padding: "0 2px",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
             <form action={signOutAction}>
               <button
                 type="submit"
@@ -310,29 +458,43 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
             Fintrak
           </span>
           <button
+            ref={mobileBellRef}
             type="button"
             className="relative flex h-11 w-11 items-center justify-center rounded-md"
             aria-label="Notifications"
+            onClick={() => openNotif("mobile")}
             style={{
               border: "1px solid rgba(255,255,255,0.055)",
               background: "#131318",
-              color: "#72727e",
+              color: unreadCount > 0 ? "#f0f0f4" : "#72727e",
             }}
           >
             <Bell size={14} strokeWidth={1.5} />
-            <span
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 11,
-                width: 5,
-                height: 5,
-                borderRadius: "50%",
-                background: "#00c896",
-                border: "1.5px solid #0c0c0f",
-                boxShadow: "0 0 6px #00c896",
-              }}
-            />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: 9,
+                  right: 9,
+                  minWidth: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  background: "#ff4455",
+                  border: "1.5px solid #131318",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "var(--font-space-mono)",
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: "#fff",
+                  lineHeight: 1,
+                  padding: "0 3px",
+                }}
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
         </header>
 
@@ -441,10 +603,191 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
         </div>
       )}
 
+      {/* ── NOTIFICATION DROPDOWN ── */}
+      {notifOpen && (
+        <div
+          ref={notifPanelRef}
+          style={{
+            position: "fixed",
+            zIndex: 300,
+            width: 340,
+            maxHeight: 460,
+            display: "flex",
+            flexDirection: "column",
+            background: "#0c0c0f",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 10,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+            animation: "notifFadeIn 0.15s ease",
+            ...(notifAnchor === "desktop"
+              ? { bottom: 70, left: 220 }
+              : { top: 60, right: 8, width: "min(340px, calc(100vw - 16px))" as React.CSSProperties["width"] }),
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 16px 12px",
+              borderBottom: "1px solid rgba(255,255,255,0.055)",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-syne)",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#f0f0f4",
+              }}
+            >
+              Notifications
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  disabled={markingRead}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.055)",
+                    borderRadius: 4,
+                    padding: "3px 8px",
+                    color: "#72727e",
+                    fontFamily: "var(--font-figtree)",
+                    fontSize: 11,
+                    cursor: markingRead ? "default" : "pointer",
+                    opacity: markingRead ? 0.5 : 1,
+                    transition: "color 0.12s ease, border-color 0.12s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#f0f0f4";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#72727e";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.055)";
+                  }}
+                >
+                  <Check size={10} strokeWidth={2} />
+                  Mark all read
+                </button>
+              )}
+              <button
+                onClick={() => setNotifOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#72727e",
+                  cursor: "pointer",
+                  padding: 2,
+                  display: "flex",
+                }}
+              >
+                <X size={14} strokeWidth={1.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* List */}
+          <div style={{ overflowY: "auto", flex: 1, scrollbarWidth: "thin", scrollbarColor: "#1a1a21 transparent" }}>
+            {notifications.length === 0 ? (
+              <div
+                style={{
+                  padding: "32px 16px",
+                  textAlign: "center",
+                  fontFamily: "var(--font-figtree)",
+                  fontSize: 13,
+                  color: "#363640",
+                }}
+              >
+                No notifications yet
+              </div>
+            ) : (
+              notifications.map((n) => {
+                const cfg = NOTIF_CONFIG[n.type] ?? NOTIF_DEFAULT;
+                const Icon = cfg.icon;
+                return (
+                  <div
+                    key={n.id}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      padding: "12px 16px",
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderLeft: `2px solid ${n.isRead ? "transparent" : cfg.color}`,
+                      background: n.isRead ? "transparent" : "rgba(255,255,255,0.02)",
+                      transition: "background 0.12s ease",
+                    }}
+                  >
+                    <div style={{ flexShrink: 0, paddingTop: 1 }}>
+                      <Icon size={13} color={cfg.color} strokeWidth={1.5} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 4,
+                          gap: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: "var(--font-space-mono)",
+                            fontSize: 9,
+                            fontWeight: 700,
+                            letterSpacing: "0.1em",
+                            color: cfg.color,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {cfg.label}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-space-mono)",
+                            fontSize: 9,
+                            color: "#363640",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {timeAgo(n.createdAt)}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-figtree)",
+                          fontSize: 12,
+                          color: n.isRead ? "#72727e" : "#b0b0b8",
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {n.message}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
+        }
+        @keyframes notifFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
