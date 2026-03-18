@@ -80,12 +80,40 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (room.createdById !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    console.error("[room-patch] validation failed", { reason: "null or invalid body", userId, roomId: id });
+    return NextResponse.json({ error: "Request body is required" }, { status: 400 });
+  }
+
   const data: { name?: string; budgetCap?: number | null } = {};
-  if (body?.name && typeof body.name === "string") data.name = body.name.trim();
+
+  if ("name" in body) {
+    if (typeof body.name !== "string" || body.name.trim().length === 0) {
+      console.error("[room-patch] validation failed", { reason: "empty name", userId, roomId: id });
+      return NextResponse.json({ error: "Room name cannot be empty" }, { status: 400 });
+    }
+    data.name = body.name.trim();
+  }
+
   if ("budgetCap" in body) {
-    data.budgetCap = body.budgetCap ? Number(body.budgetCap) : null;
+    if (body.budgetCap === null) {
+      data.budgetCap = null;
+    } else {
+      const cap = Number(body.budgetCap);
+      if (!isFinite(cap) || cap <= 0) {
+        console.error("[room-patch] validation failed", { reason: "invalid budgetCap", userId, roomId: id, budgetCap: body.budgetCap });
+        return NextResponse.json({ error: "budgetCap must be a positive number or null" }, { status: 400 });
+      }
+      data.budgetCap = cap;
+    }
+  }
+
+  if (Object.keys(data).length === 0) {
+    console.error("[room-patch] validation failed", { reason: "no valid fields", userId, roomId: id });
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
 
   const updated = await db.room.update({ where: { id }, data });
+  console.log("[room-patch] updated", { id: updated.id, userId, roomId: id, fields: Object.keys(data) });
   return NextResponse.json(updated);
 }

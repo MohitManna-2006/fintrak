@@ -37,14 +37,40 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { id: roomId } = await params;
 
-  const member = await db.roomMember.findFirst({ where: { roomId, userId } });
-  if (!member) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  // Load all room members into a Map for O(1) lookups
+  const allMembers = await db.roomMember.findMany({ where: { roomId } });
+  const memberMap = new Map(allMembers.map((m) => [m.userId, m.role]));
+
+  const callerRole = memberMap.get(userId);
+  if (!callerRole) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => null);
   const { fromUserId, toUserId, amount, note } = body ?? {};
 
-  if (!fromUserId || !toUserId || !amount || typeof amount !== "number" || amount <= 0) {
+  if (!fromUserId || !toUserId || !amount || typeof amount !== "number" || !isFinite(amount) || amount <= 0) {
+    console.error("[room-settle] validation failed", { reason: "missing or invalid fields", userId, roomId, fromUserId, toUserId, amount });
     return NextResponse.json({ error: "fromUserId, toUserId, and positive amount are required" }, { status: 400 });
+  }
+
+  if (!memberMap.has(fromUserId)) {
+    console.error("[room-settle] validation failed", { reason: "fromUserId not a member", userId, roomId, fromUserId });
+    return NextResponse.json({ error: "fromUserId is not a room member" }, { status: 400 });
+  }
+
+  if (!memberMap.has(toUserId)) {
+    console.error("[room-settle] validation failed", { reason: "toUserId not a member", userId, roomId, toUserId });
+    return NextResponse.json({ error: "toUserId is not a room member" }, { status: 400 });
+  }
+
+  if (fromUserId === toUserId) {
+    console.error("[room-settle] validation failed", { reason: "self-settlement", userId, roomId, fromUserId });
+    return NextResponse.json({ error: "fromUserId and toUserId must be different" }, { status: 400 });
+  }
+
+  // Auth: fromUserId must equal session userId OR caller must be admin
+  if (fromUserId !== userId && callerRole !== "admin") {
+    console.error("[room-settle] validation failed", { reason: "unauthorized settlement on behalf", userId, roomId, fromUserId });
+    return NextResponse.json({ error: "You can only record settlements on your own behalf" }, { status: 403 });
   }
 
   const settlement = await db.settlement.create({
@@ -57,5 +83,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     },
   });
 
+  console.log("[room-settle] created", { id: settlement.id, userId, roomId });
   return NextResponse.json(settlement);
 }
