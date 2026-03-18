@@ -103,7 +103,7 @@ function TransactionRow({
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "14px 20px",
+        padding: "16px 20px",
         borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.055)",
         background: hovered ? "rgba(255,255,255,0.02)" : "transparent",
         transition: "background 0.15s ease",
@@ -113,7 +113,7 @@ function TransactionRow({
     >
       <div
         style={{
-          width: 2,
+          width: 3,
           height: 34,
           borderRadius: 2,
           background: color,
@@ -128,7 +128,7 @@ function TransactionRow({
           style={{
             fontFamily: "var(--font-figtree)",
             fontWeight: 600,
-            fontSize: 14,
+            fontSize: 15,
             color: "#f0f0f4",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -141,8 +141,8 @@ function TransactionRow({
           <span
             style={{
               fontFamily: "var(--font-space-mono)",
-              fontSize: 9.5,
-              color: "#4a4a56",
+              fontSize: 10.5,
+              color: "#72727e",
             }}
           >
             {dateStr}
@@ -151,11 +151,11 @@ function TransactionRow({
             className="txn-cat-pill"
             style={{
               fontFamily: "var(--font-space-mono)",
-              fontSize: 9,
-              padding: "1px 5px",
+              fontSize: 10,
+              padding: "2px 6px",
               borderRadius: 4,
               border: "1px solid rgba(255,255,255,0.055)",
-              color: "#50505c",
+              color: "#72727e",
             }}
           >
             {tx.category}
@@ -168,7 +168,7 @@ function TransactionRow({
         style={{
           fontFamily: "var(--font-space-mono)",
           fontWeight: 700,
-          fontSize: 14,
+          fontSize: 15,
           fontVariantNumeric: "tabular-nums",
           color: tx.type === "income" ? "#00c896" : "#ff4455",
           flexShrink: 0,
@@ -647,13 +647,13 @@ function SkeletonRow({ index }: { index: number }) {
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "14px 20px",
+        padding: "16px 20px",
         borderBottom: index < 4 ? "1px solid rgba(255,255,255,0.055)" : "none",
         animation: `fadeUp 0.35s ease both`,
         animationDelay: `${index * 60}ms`,
       }}
     >
-      <div style={{ width: 2, height: 32, borderRadius: 2, background: "#1a1a21", flexShrink: 0 }} />
+      <div style={{ width: 3, height: 32, borderRadius: 2, background: "#1a1a21", flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
         <div style={{ width: 140, height: 12, borderRadius: 4, background: "#1a1a21", marginBottom: 8, animation: "shimmer 1.5s infinite" }} />
         <div style={{ width: 90, height: 9, borderRadius: 3, background: "#131318", animation: "shimmer 1.5s infinite", animationDelay: "0.15s" }} />
@@ -797,6 +797,9 @@ export default function TransactionsPage() {
   const selectStyle: React.CSSProperties = {
     ...inputBase,
     cursor: "pointer",
+    fontSize: 13,
+    color: "#f0f0f4",
+    border: "1px solid rgba(255,255,255,0.15)",
   };
 
   return (
@@ -925,9 +928,8 @@ export default function TransactionsPage() {
           <div
             style={{
               fontFamily: "var(--font-space-mono)",
-              fontSize: 11,
+              fontSize: 12,
               color: "#72727e",
-              opacity: 0.75,
               marginTop: 5,
               letterSpacing: "0.06em",
             }}
@@ -1006,12 +1008,12 @@ export default function TransactionsPage() {
                   padding: "7px 14px",
                   borderRadius:
                     i === 0 ? "6px 0 0 6px" : i === 2 ? "0 6px 6px 0" : "0",
-                  border: `1px solid ${active ? "rgba(0,200,150,0.25)" : "rgba(255,255,255,0.055)"}`,
+                  border: `1px solid ${active ? "rgba(0,200,150,0.25)" : "rgba(255,255,255,0.15)"}`,
                   borderRight: i < 2 ? "none" : undefined,
                   background: active ? "rgba(0,200,150,0.12)" : "#131318",
-                  color: active ? "#00c896" : "#72727e",
+                  color: active ? "#00c896" : "#f0f0f4",
                   fontFamily: "var(--font-space-mono)",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: active ? 700 : 400,
                   cursor: "pointer",
                   textTransform: "capitalize",
