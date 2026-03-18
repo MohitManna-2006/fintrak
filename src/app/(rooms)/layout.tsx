@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -7,7 +8,10 @@ export default async function RoomsLayout({ children }: { children: React.ReactN
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const callbackUrl = pathname.startsWith("/") ? `?callbackUrl=${encodeURIComponent(pathname)}` : "";
+    redirect(`/login${callbackUrl}`);
   }
 
   const user = await db.user.findUnique({
