@@ -68,8 +68,8 @@ function BudgetBar({ name, spent, limit, color, idx }: { name: string; spent: nu
   return (
     <div style={{ marginBottom: 13 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: "#f0f0f4" }}>{name}</span>
-        <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 10.5, color: pct >= 100 ? "#ff4455" : pct >= 80 ? "#e8a000" : "#72727e" }}>
+        <span style={{ fontSize: 13, color: "#e0e0e8" }}>{name}</span>
+        <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 11, color: pct >= 100 ? "#ff4455" : pct >= 80 ? "#e8a000" : "#72727e" }}>
           ${spent} <span style={{ color: "#363640" }}>/ ${limit}</span>
         </span>
       </div>
@@ -206,7 +206,7 @@ export default function DashboardClient(props: DashboardClientProps) {
               overflow: "hidden",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--t2, #72727e)" }}>{s.label}</span>
+                <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#4a4a56" }}>{s.label}</span>
                 {s.delta && dc && (
                   <span style={{
                     fontFamily: "var(--font-space-mono)", fontSize: 9.5,
@@ -216,7 +216,7 @@ export default function DashboardClient(props: DashboardClientProps) {
                   }}>{s.delta}</span>
                 )}
               </div>
-              <div className="text-[22px] lg:text-[28px]" style={{ fontFamily: "var(--font-space-mono)", fontWeight: 700, letterSpacing: "-1.5px", color: s.color, fontVariantNumeric: "tabular-nums" }}>
+              <div className="text-[22px] lg:text-[32px]" style={{ fontFamily: "var(--font-space-mono)", fontWeight: 700, letterSpacing: "-1.5px", color: s.color, fontVariantNumeric: "tabular-nums" }}>
                 {props.hasData ? (
                   <Count to={s.val} prefix={s.prefix} delay={i * 80} />
                 ) : (
@@ -235,7 +235,7 @@ export default function DashboardClient(props: DashboardClientProps) {
         {/* DONUT */}
         <div style={panel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-syne)", fontSize: 13, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Spending Breakdown</span>
+            <span style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Spending Breakdown</span>
             <span style={{ fontSize: 11, color: "#50505c", cursor: "pointer", fontFamily: "var(--font-space-mono)", display: "flex", alignItems: "center", gap: 2 }}>all <ChevronRight size={10} /></span>
           </div>
           {props.pieData.length === 0 ? (
@@ -277,7 +277,7 @@ export default function DashboardClient(props: DashboardClientProps) {
         {/* AREA CHART */}
         <div style={panel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-syne)", fontSize: 13, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>6-Month Overview</span>
+            <span style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>6-Month Overview</span>
             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
               {[{ color: "#00c896", label: "Income" }, { color: "#ff4455", label: "Expenses" }].map((l) => (
                 <span key={l.label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#72727e", fontFamily: "var(--font-space-mono)", letterSpacing: "0.02em" }}>
@@ -314,7 +314,7 @@ export default function DashboardClient(props: DashboardClientProps) {
         {/* TRANSACTIONS */}
         <div style={panel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-syne)", fontSize: 13, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Recent Transactions</span>
+            <span style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Recent Transactions</span>
             <Link href="/transactions" style={{ fontSize: 11, color: "#50505c", cursor: "pointer", fontFamily: "var(--font-space-mono)", display: "flex", alignItems: "center", gap: 2, textDecoration: "none" }}>view all <ChevronRight size={10} /></Link>
           </div>
           {props.recentTxns.length === 0 ? (
@@ -333,14 +333,14 @@ export default function DashboardClient(props: DashboardClientProps) {
                 }}>
                   <div style={{ width: 2, height: 30, borderRadius: 1, background: tx.color, boxShadow: `0 0 6px ${tx.color}60`, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="text-xs lg:text-[13px]" style={{ fontWeight: 500, color: "#f0f0f4", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#f0f0f4", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tx.name}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-                      <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 10, color: "#4a4a56" }}>{tx.date}</span>
-                      <span className="hidden sm:inline-flex" style={{ fontSize: 9.5, padding: "1px 6px", borderRadius: 3, fontFamily: "var(--font-space-mono)", border: "1px solid rgba(255,255,255,0.055)", color: "#72727e" }}>{tx.cat}</span>
+                      <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9.5, color: "#4a4a56" }}>{tx.date}</span>
+                      <span className="hidden sm:inline-flex" style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, fontFamily: "var(--font-space-mono)", border: "1px solid rgba(255,255,255,0.055)", color: "#50505c" }}>{tx.cat}</span>
                     </div>
                   </div>
-                  <div className="text-xs lg:text-[13px]" style={{
-                    fontFamily: "var(--font-space-mono)", fontWeight: 700,
+                  <div style={{
+                    fontFamily: "var(--font-space-mono)", fontSize: 14, fontWeight: 700,
                     fontVariantNumeric: "tabular-nums", flexShrink: 0,
                     color: tx.type === "income" ? "#00c896" : "#f0f0f4",
                   }}>
@@ -355,7 +355,7 @@ export default function DashboardClient(props: DashboardClientProps) {
         {/* BUDGETS */}
         <div style={panel}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-syne)", fontSize: 13, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Monthly Budgets</span>
+            <span style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, color: "#f0f0f4", letterSpacing: "-0.2px" }}>Monthly Budgets</span>
             <Link href="/budgets" style={{ fontSize: 11, color: "#50505c", cursor: "pointer", fontFamily: "var(--font-space-mono)", display: "flex", alignItems: "center", gap: 2, textDecoration: "none" }}>edit <ChevronRight size={10} /></Link>
           </div>
           {props.budgetProgress.length === 0 ? (

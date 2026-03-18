@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUp, Zap } from "lucide-react";
+import { marked } from "marked";
+
+marked.setOptions({ breaks: true, gfm: true });
 
 type Message = {
   id: string;
@@ -161,6 +164,13 @@ export default function CopilotPage() {
           0%, 80%, 100% { opacity: 0.2; }
           40% { opacity: 1; }
         }
+        .assistant-md p { margin-bottom: 8px; }
+        .assistant-md p:last-child { margin-bottom: 0; }
+        .assistant-md strong { color: #f0f0f4; font-weight: 600; }
+        .assistant-md em { color: #a0a0ac; }
+        .assistant-md ul, .assistant-md ol { padding-left: 16px; margin: 6px 0; }
+        .assistant-md li { margin-bottom: 4px; color: #72727e; }
+        .copilot-input::placeholder { color: #4a4a56; }
       `}</style>
 
       {/* HEADER */}
@@ -291,10 +301,10 @@ export default function CopilotPage() {
                     background: "#0c0c0f",
                     border: "1px solid rgba(255,255,255,0.055)",
                     borderRadius: 6,
-                    padding: "10px 14px",
+                    padding: "12px 16px",
                     fontFamily: "var(--font-figtree)",
-                    fontSize: 12.5,
-                    color: "#72727e",
+                    fontSize: 13,
+                    color: "#a0a0ac",
                     cursor: "pointer",
                     textAlign: "left",
                     transition: "border-color 0.15s ease",
@@ -331,7 +341,8 @@ export default function CopilotPage() {
                   borderRadius: "8px 8px 2px 8px",
                   padding: "12px 16px",
                   fontFamily: "var(--font-figtree)",
-                  fontSize: 13.5,
+                  fontSize: 14,
+                  fontWeight: 500,
                   color: "#f0f0f4",
                   lineHeight: 1.55,
                   whiteSpace: "pre-wrap",
@@ -347,15 +358,19 @@ export default function CopilotPage() {
                   borderLeft: "2px solid #00c896",
                   paddingLeft: 14,
                   fontFamily: "var(--font-figtree)",
-                  fontSize: 13.5,
-                  color: "#f0f0f4",
-                  lineHeight: 1.65,
-                  whiteSpace: "pre-wrap",
+                  fontSize: 14,
+                  color: "#c8c8d0",
+                  lineHeight: 1.7,
                   wordBreak: "break-word",
                   minHeight: 20,
                 }}
               >
-                {msg.content || (
+                {msg.content ? (
+                  <div
+                    className="assistant-md"
+                    dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }}
+                  />
+                ) : (
                   <span style={{ display: "inline-flex", gap: 4 }}>
                     {[0, 1, 2].map((i) => (
                       <span
@@ -376,8 +391,8 @@ export default function CopilotPage() {
             <div
               style={{
                 fontFamily: "var(--font-space-mono)",
-                fontSize: 10,
-                color: "#363640",
+                fontSize: 9.5,
+                color: "#3a3a46",
                 marginTop: 4,
               }}
             >
@@ -399,6 +414,7 @@ export default function CopilotPage() {
         <div style={{ position: "relative" }}>
           <textarea
             ref={textareaRef}
+            className="copilot-input"
             value={input}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
@@ -411,7 +427,7 @@ export default function CopilotPage() {
               border: "1px solid rgba(255,255,255,0.055)",
               borderRadius: 8,
               fontFamily: "var(--font-figtree)",
-              fontSize: 13.5,
+              fontSize: 14,
               color: "#f0f0f4",
               padding: "12px 50px 12px 16px",
               outline: "none",

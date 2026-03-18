@@ -96,6 +96,7 @@ function TransactionRow({
 
   return (
     <div
+      className="txn-row"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -113,7 +114,7 @@ function TransactionRow({
       <div
         style={{
           width: 2,
-          height: 32,
+          height: 34,
           borderRadius: 2,
           background: color,
           boxShadow: `0 0 8px ${color}40`,
@@ -123,10 +124,11 @@ function TransactionRow({
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
+          className="txn-desc"
           style={{
             fontFamily: "var(--font-figtree)",
-            fontWeight: 500,
-            fontSize: 13,
+            fontWeight: 600,
+            fontSize: 14,
             color: "#f0f0f4",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -139,20 +141,21 @@ function TransactionRow({
           <span
             style={{
               fontFamily: "var(--font-space-mono)",
-              fontSize: 10,
-              color: "#72727e",
+              fontSize: 9.5,
+              color: "#4a4a56",
             }}
           >
             {dateStr}
           </span>
           <span
+            className="txn-cat-pill"
             style={{
               fontFamily: "var(--font-space-mono)",
-              fontSize: 9.5,
-              padding: "2px 7px",
+              fontSize: 9,
+              padding: "1px 5px",
               borderRadius: 4,
               border: "1px solid rgba(255,255,255,0.055)",
-              color: "#72727e",
+              color: "#50505c",
             }}
           >
             {tx.category}
@@ -161,10 +164,11 @@ function TransactionRow({
       </div>
 
       <div
+        className="txn-amount"
         style={{
           fontFamily: "var(--font-space-mono)",
           fontWeight: 700,
-          fontSize: 15,
+          fontSize: 14,
           fontVariantNumeric: "tabular-nums",
           color: tx.type === "income" ? "#00c896" : "#ff4455",
           flexShrink: 0,
@@ -175,6 +179,7 @@ function TransactionRow({
       </div>
 
       <div
+        className="txn-actions"
         style={{
           display: "flex",
           gap: 4,
@@ -291,6 +296,7 @@ function TransactionModal({
 
   return (
     <div
+      className="txn-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
       style={{
         position: "fixed",
@@ -305,6 +311,7 @@ function TransactionModal({
       }}
     >
       <div
+        className="txn-modal-inner"
         style={{
           width: 420,
           maxWidth: "calc(100vw - 32px)",
@@ -459,6 +466,7 @@ function TransactionModal({
 
         {/* Footer */}
         <div
+          className="txn-modal-footer"
           style={{
             display: "flex",
             justifyContent: "flex-end",
@@ -524,6 +532,7 @@ function DeleteModal({
 }) {
   return (
     <div
+      className="txn-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
       style={{
         position: "fixed",
@@ -538,6 +547,7 @@ function DeleteModal({
       }}
     >
       <div
+        className="txn-delete-modal-inner"
         style={{
           width: 360,
           maxWidth: "calc(100vw - 32px)",
@@ -791,6 +801,7 @@ export default function TransactionsPage() {
 
   return (
     <div
+      className="txn-page"
       style={{
         width: "100%",
         maxWidth: 1100,
@@ -822,10 +833,61 @@ export default function TransactionsPage() {
           margin: 0;
         }
         input[type="number"] { -moz-appearance: textfield; }
+        @keyframes modalSlideUp {
+          from { opacity:0; transform:translateY(100%); }
+          to { opacity:1; transform:translateY(0); }
+        }
+        @media (max-width:639px) {
+          .txn-page { padding:20px 16px 32px !important; }
+          .txn-header {
+            flex-direction:column !important;
+            align-items:stretch !important;
+            gap:14px !important;
+          }
+          .txn-add-btn {
+            width:100% !important;
+            justify-content:center !important;
+          }
+          .txn-filter-bar {
+            display:grid !important;
+            grid-template-columns:1fr 1fr !important;
+            gap:8px !important;
+          }
+          .txn-filter-month,
+          .txn-filter-year { width:100% !important; }
+          .txn-filter-type {
+            grid-column:1 / -1;
+            margin-left:0 !important;
+          }
+          .txn-filter-type button { flex:1; }
+          .txn-filter-category { display:none !important; }
+          .txn-row { padding:12px 14px !important; gap:10px !important; }
+          .txn-desc { font-size:13px !important; max-width:20ch !important; }
+          .txn-cat-pill { display:none !important; }
+          .txn-amount { font-size:13px !important; }
+          .txn-actions { opacity:1 !important; }
+          .txn-actions button { opacity:0.4; transition:opacity 0.15s ease; }
+          .txn-actions button:active { opacity:1; }
+          .txn-modal-overlay { align-items:flex-end !important; }
+          .txn-modal-inner,
+          .txn-delete-modal-inner {
+            width:calc(100% - 48px) !important;
+            max-width:none !important;
+            border-radius:12px 12px 0 0 !important;
+            animation:modalSlideUp 0.3s ease !important;
+          }
+          .txn-modal-footer {
+            padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;
+          }
+          .txn-delete-modal-inner {
+            padding-bottom:calc(22px + env(safe-area-inset-bottom)) !important;
+          }
+        }
       `}</style>
 
       {/* ── HEADER ── */}
       <div
+        className="txn-header"
         style={{
           display: "flex",
           alignItems: "flex-end",
@@ -874,6 +936,7 @@ export default function TransactionsPage() {
           </div>
         </div>
         <button
+          className="txn-add-btn"
           onClick={openAdd}
           style={{
             display: "flex",
@@ -897,6 +960,7 @@ export default function TransactionsPage() {
 
       {/* ── FILTER BAR ── */}
       <div
+        className="txn-filter-bar"
         style={{
           display: "flex",
           alignItems: "center",
@@ -906,6 +970,7 @@ export default function TransactionsPage() {
         }}
       >
         <select
+          className="txn-filter-month"
           value={month}
           onChange={(e) => setMonth(Number(e.target.value))}
           style={selectStyle}
@@ -918,6 +983,7 @@ export default function TransactionsPage() {
         </select>
 
         <select
+          className="txn-filter-year"
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
           style={selectStyle}
@@ -929,7 +995,7 @@ export default function TransactionsPage() {
           ))}
         </select>
 
-        <div style={{ display: "flex", gap: 0, marginLeft: 4 }}>
+        <div className="txn-filter-type" style={{ display: "flex", gap: 0, marginLeft: 4 }}>
           {(["all", "income", "expense"] as const).map((t, i) => {
             const active = filterType === t;
             return (
@@ -959,6 +1025,7 @@ export default function TransactionsPage() {
         </div>
 
         <select
+          className="txn-filter-category"
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
           style={{ ...selectStyle, marginLeft: 4 }}
