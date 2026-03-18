@@ -37,9 +37,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { id: roomId } = await params;
 
-  // Load all room members into a Map for O(1) lookups
-  const allMembers = await db.roomMember.findMany({ where: { roomId } });
-  const memberMap = new Map(allMembers.map((m) => [m.userId, m.role]));
+  // Load all room members and room name in one query
+  const roomWithMembers = await db.room.findUnique({
+    where: { id: roomId },
+    select: {
+      name: true,
+      members: { select: { userId: true, role: true } },
+    },
+  });
+
+  if (!roomWithMembers) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const memberMap = new Map(roomWithMembers.members.map((m) => [m.userId, m.role]));
+  const roomName = roomWithMembers.name;
 
   const callerRole = memberMap.get(userId);
   if (!callerRole) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -73,16 +83,64 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "You can only record settlements on your own behalf" }, { status: 403 });
   }
 
-  const settlement = await db.settlement.create({
-    data: {
-      roomId,
-      fromUserId,
-      toUserId,
-      amount: Math.round(Number(amount) * 100) / 100,
-      note: note ?? null,
-    },
+  // Fetch user names for transaction descriptions
+  const [fromUser, toUser] = await Promise.all([
+    db.user.findUnique({ where: { id: fromUserId }, select: { name: true } }),
+    db.user.findUnique({ where: { id: toUserId }, select: { name: true } }),
+  ]);
+
+  const fromUserName = fromUser?.name ?? fromUserId;
+  const toUserName = toUser?.name ?? toUserId;
+  const roundedAmount = Math.round(Number(amount) * 100) / 100;
+
+  // Create settlement + personal transactions atomically
+  const [settlement] = await db.$transaction([
+    db.settlement.create({
+      data: {
+        roomId,
+        fromUserId,
+        toUserId,
+        amount: roundedAmount,
+        note: note ?? null,
+      },
+    }),
+    // Personal expense for the payer (fromUser)
+    db.transaction.create({
+      data: {
+        userId: fromUserId,
+        roomId: null,
+        amount: roundedAmount,
+        type: "expense",
+        category: "Room Settlement",
+        description: `Paid ${toUserName} · ${roomName}`,
+        date: new Date(),
+        paidByUserId: null,
+        splitType: null,
+      },
+    }),
+    // Personal income for the recipient (toUser)
+    db.transaction.create({
+      data: {
+        userId: toUserId,
+        roomId: null,
+        amount: roundedAmount,
+        type: "income",
+        category: "Room Settlement",
+        description: `Received from ${fromUserName} · ${roomName}`,
+        date: new Date(),
+        paidByUserId: null,
+        splitType: null,
+      },
+    }),
+  ]);
+
+  console.log("[settle] settlement + transactions created", {
+    settlementId: settlement.id,
+    fromUserId,
+    toUserId,
+    amount: roundedAmount,
+    roomId,
   });
 
-  console.log("[room-settle] created", { id: settlement.id, userId, roomId });
   return NextResponse.json(settlement);
 }

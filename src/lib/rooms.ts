@@ -30,8 +30,8 @@ export function computeUserBalance(
     if (mySplit) balance -= mySplit.amount;
   }
   for (const s of settlements) {
-    if (s.toUserId === userId) balance += s.amount;
-    if (s.fromUserId === userId) balance -= s.amount;
+    if (s.toUserId === userId) balance -= s.amount;   // creditor received money → owed less
+    if (s.fromUserId === userId) balance += s.amount;  // debtor paid money → owes less
   }
   return Math.round(balance * 100) / 100;
 }
