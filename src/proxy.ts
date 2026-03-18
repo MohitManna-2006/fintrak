@@ -16,15 +16,19 @@ export default function proxy(req: NextRequest) {
   const isPublicRoute = nextUrl.pathname === "/login" || nextUrl.pathname.startsWith("/api/auth/");
   const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard");
 
+  // Inject pathname so server layouts can build callbackUrl redirects
+  const headers = new Headers(req.headers);
+  headers.set("x-pathname", nextUrl.pathname);
+
   if (isPublicRoute) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers } });
   }
 
   if (isDashboardRoute && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {
