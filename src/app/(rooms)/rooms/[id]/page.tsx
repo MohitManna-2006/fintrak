@@ -174,7 +174,7 @@ export default function RoomDetailPage() {
   return (
     <div style={{ padding: "32px 24px", maxWidth: 900, margin: "0 auto" }}>
       {/* Back + Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+      <div className="room-header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
         <button onClick={() => router.push("/rooms")} style={{ background: "none", border: "none", cursor: "pointer", color: "#72727e", padding: 4, display: "flex" }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -185,7 +185,7 @@ export default function RoomDetailPage() {
       </div>
 
       {/* Summary strip */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+      <div className="room-stats" style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
         <Stat label="Total Expenses" value={`$${room.totalExpenses.toFixed(2)}`} color="#fff" />
         {room.budgetCap && (
           <Stat
@@ -203,7 +203,7 @@ export default function RoomDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, background: "#0c0c0f", borderRadius: 12, padding: 4, marginBottom: 24, width: "fit-content" }}>
+      <div className="room-tabs" style={{ display: "flex", gap: 4, background: "#0c0c0f", borderRadius: 12, padding: 4, marginBottom: 24, width: "fit-content" }}>
         {([
           { key: "expenses", label: "Expenses", icon: Plus },
           { key: "settle", label: "Settle Up", icon: CheckCircle },
@@ -245,7 +245,21 @@ export default function RoomDetailPage() {
         <CopilotTab roomId={room.id} />
       )}
 
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @media (max-width: 639px) {
+          .room-header { flex-wrap: wrap; }
+          .room-header h1 { font-size: 20px !important; }
+          .room-stats { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+          .room-tabs { width: 100% !important; overflow-x: auto !important; scrollbar-width: none; }
+          .room-tabs::-webkit-scrollbar { display: none; }
+          .expense-card { flex-wrap: wrap !important; }
+          .expense-card > div:first-child { min-width: 0; }
+          .expense-form-grid { grid-template-columns: 1fr !important; }
+          .expense-form-grid > div[style*="grid-column"] { grid-column: 1 !important; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -365,6 +379,7 @@ function ExpensesTab({
             return (
               <div
                 key={tx.id}
+                className="expense-card"
                 style={{
                   background: "#0c0c0f",
                   border: "1px solid #1e1e26",
@@ -526,7 +541,7 @@ function AddExpenseModal({
         </div>
 
         <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="expense-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={{ fontFamily: "Figtree, sans-serif", fontSize: 12, color: "#72727e", display: "block", marginBottom: 6 }}>Description</label>
               <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Dinner at Mario's" style={inputStyle} />

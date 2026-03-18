@@ -2,11 +2,20 @@ import { TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/lib/auth";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
   const session = await auth();
+  const params = await searchParams;
+
+  // Only allow relative paths to prevent open-redirect attacks
+  const raw = params.callbackUrl ?? "";
+  const callbackUrl = raw.startsWith("/") ? raw : "/dashboard";
 
   if (session?.user) {
-    redirect("/dashboard");
+    redirect(callbackUrl);
   }
 
   return (
@@ -88,7 +97,7 @@ export default async function LoginPage() {
         <form
           action={async () => {
             "use server";
-            await signIn("google", { redirectTo: "/dashboard" });
+            await signIn("google", { redirectTo: callbackUrl });
           }}
         >
           <button

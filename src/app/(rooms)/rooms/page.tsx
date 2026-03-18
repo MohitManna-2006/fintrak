@@ -80,7 +80,7 @@ export default function RoomsPage() {
   return (
     <div style={{ padding: "32px 24px", maxWidth: 900, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+      <div className="rooms-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
         <div>
           <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: 28, fontWeight: 700, color: "#fff", margin: 0 }}>
             Shared Rooms
@@ -91,6 +91,7 @@ export default function RoomsPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
+          className="rooms-new-btn"
           style={{
             display: "flex",
             alignItems: "center",
@@ -166,6 +167,7 @@ export default function RoomsPage() {
               <button
                 key={room.id}
                 onClick={() => router.push(`/rooms/${room.id}`)}
+                className="room-card"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -224,7 +226,7 @@ export default function RoomsPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                <div className="room-card-right" style={{ display: "flex", alignItems: "center", gap: 24 }}>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                       {bal > 0.005 ? (
@@ -242,7 +244,7 @@ export default function RoomsPage() {
                       {balLabel}
                     </div>
                   </div>
-                  <ChevronRight size={18} color="#2a2a36" strokeWidth={1.5} />
+                  <ChevronRight className="room-chevron" size={18} color="#2a2a36" strokeWidth={1.5} />
                 </div>
               </button>
             );
@@ -362,6 +364,13 @@ export default function RoomsPage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+        @media (max-width: 639px) {
+          .rooms-header { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+          .rooms-new-btn { width: 100% !important; justify-content: center !important; }
+          .room-card { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .room-card-right { width: 100% !important; justify-content: space-between !important; flex-direction: row-reverse !important; }
+          .room-chevron { display: none !important; }
         }
       `}</style>
     </div>
