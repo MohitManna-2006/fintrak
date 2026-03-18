@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
+  id            String             @id @default(cuid())
+  email         String             @unique
   name          String?
   image         String?
   emailVerified DateTime?
-  createdAt     DateTime       @default(now())
-  onboarded     Boolean        @default(false)
+  createdAt     DateTime           @default(now())
+  onboarded     Boolean            @default(false)
   monthlyIncome Float?
-  currency      String         @default("USD")
+  currency      String             @default("USD")
   financialGoal String?
   accounts      Account[]
   sessions      Session[]
@@ -26,6 +26,7 @@ model User {
   chatHistory   ChatMessage[]
   notifications Notification[]
   roomMembers   RoomMember[]
+  splits        TransactionSplit[]
 }
 
 model Account {
@@ -63,17 +64,29 @@ model VerificationToken {
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Float
-  type        String
-  category    String
-  description String?
-  date        DateTime
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
-  roomId      String?
-  room        Room?    @relation(fields: [roomId], references: [id])
+  id           String             @id @default(cuid())
+  userId       String
+  amount       Float
+  type         String
+  category     String
+  description  String?
+  date         DateTime
+  createdAt    DateTime           @default(now())
+  paidByUserId String?
+  splitType    String?
+  user         User               @relation(fields: [userId], references: [id])
+  roomId       String?
+  room         Room?              @relation(fields: [roomId], references: [id])
+  splits       TransactionSplit[]
+}
+
+model TransactionSplit {
+  id            String      @id @default(cuid())
+  transactionId String
+  userId        String
+  amount        Float
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id])
 }
 
 model Budget {
@@ -121,9 +134,12 @@ model Room {
   id          String        @id @default(cuid())
   name        String
   createdById String
+  budgetCap   Float?
   createdAt   DateTime      @default(now())
   members     RoomMember[]
   transactions Transaction[]
+  invites     RoomInvite[]
+  settlements Settlement[]
 }
 
 model RoomMember {
@@ -131,6 +147,27 @@ model RoomMember {
   roomId String
   userId String
   role   String
-  room   Room   @relation(fields: [roomId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
+}
+
+model RoomInvite {
+  id        String    @id @default(cuid())
+  roomId    String
+  token     String    @unique @default(cuid())
+  email     String?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model Settlement {
+  id         String   @id @default(cuid())
+  roomId     String
+  fromUserId String
+  toUserId   String
+  amount     Float
+  note       String?
+  createdAt  DateTime @default(now())
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
