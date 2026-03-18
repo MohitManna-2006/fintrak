@@ -387,22 +387,23 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
                 <span
                   style={{
                     position: "absolute",
-                    top: -2,
-                    right: -2,
-                    minWidth: 12,
-                    height: 12,
-                    borderRadius: 6,
+                    top: -7,
+                    right: -7,
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 9,
                     background: "#ff4455",
-                    border: "1.5px solid #0c0c0f",
+                    border: "2px solid #0c0c0f",
+                    boxShadow: "0 0 0 1px rgba(255,68,85,0.4), 0 0 10px rgba(255,68,85,0.7)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontFamily: "var(--font-space-mono)",
-                    fontSize: 7,
+                    fontSize: 10,
                     fontWeight: 700,
                     color: "#fff",
                     lineHeight: 1,
-                    padding: "0 2px",
+                    padding: "0 4px",
                   }}
                 >
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -474,22 +475,23 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
               <span
                 style={{
                   position: "absolute",
-                  top: 9,
-                  right: 9,
-                  minWidth: 14,
-                  height: 14,
-                  borderRadius: 7,
+                  top: 4,
+                  right: 4,
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: 9,
                   background: "#ff4455",
-                  border: "1.5px solid #131318",
+                  border: "2px solid #131318",
+                  boxShadow: "0 0 0 1px rgba(255,68,85,0.4), 0 0 10px rgba(255,68,85,0.7)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontFamily: "var(--font-space-mono)",
-                  fontSize: 8,
+                  fontSize: 10,
                   fontWeight: 700,
                   color: "#fff",
                   lineHeight: 1,
-                  padding: "0 3px",
+                  padding: "0 4px",
                 }}
               >
                 {unreadCount > 9 ? "9+" : unreadCount}

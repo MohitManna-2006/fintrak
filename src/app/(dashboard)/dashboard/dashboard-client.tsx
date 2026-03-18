@@ -270,12 +270,13 @@ export default function DashboardClient(props: DashboardClientProps) {
             <Bell size={12} strokeWidth={1.5} />
             {unreadCount > 0 && (
               <span style={{
-                position: "absolute", top: 5, right: 5,
-                minWidth: 14, height: 14, borderRadius: 7,
-                background: "#ff4455", border: "1.5px solid #131318",
+                position: "absolute", top: -6, right: -6,
+                minWidth: 20, height: 20, borderRadius: 10,
+                background: "#ff4455", border: "2px solid #131318",
+                boxShadow: "0 0 0 1px rgba(255,68,85,0.4), 0 0 12px rgba(255,68,85,0.7)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--font-space-mono)", fontSize: 8,
-                fontWeight: 700, color: "#fff", lineHeight: 1, padding: "0 3px",
+                fontFamily: "var(--font-space-mono)", fontSize: 10,
+                fontWeight: 700, color: "#fff", lineHeight: 1, padding: "0 4px",
               }}>
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
