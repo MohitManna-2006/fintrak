@@ -31,6 +31,31 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const nameMap = new Map(room.members.map((m) => [m.userId, m.user.name ?? m.userId]));
   const balances = computeAllBalances(room.members, room.transactions, room.settlements);
   const debts = simplifyDebts(balances, nameMap);
+  const totalExpenses = room.transactions.reduce((s, t) => s + t.amount, 0);
+
+  // Safety net: $0 expenses → all balances must be $0
+  if (totalExpenses === 0) {
+    return NextResponse.json({
+      id: room.id,
+      name: room.name,
+      budgetCap: room.budgetCap,
+      createdById: room.createdById,
+      createdAt: room.createdAt,
+      members: room.members.map((m) => ({
+        userId: m.userId,
+        name: m.user.name,
+        image: m.user.image,
+        role: m.role,
+        balance: 0,
+      })),
+      transactions: room.transactions,
+      settlements: room.settlements,
+      invites: room.invites,
+      debts: [],
+      myBalance: 0,
+      totalExpenses: 0,
+    });
+  }
 
   return NextResponse.json({
     id: room.id,
@@ -50,7 +75,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     invites: room.invites,
     debts,
     myBalance: balances.get(userId) ?? 0,
-    totalExpenses: room.transactions.reduce((s, t) => s + t.amount, 0),
+    totalExpenses,
   });
 }
 

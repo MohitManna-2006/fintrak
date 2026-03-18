@@ -24,5 +24,13 @@ export async function DELETE(
   }
 
   await db.transaction.delete({ where: { id: txId } });
+
+  // If no transactions remain, clear orphaned settlements
+  const remaining = await db.transaction.count({ where: { roomId } });
+  if (remaining === 0) {
+    await db.settlement.deleteMany({ where: { roomId } });
+    console.log("[txId/delete] cleared orphaned settlements", { roomId });
+  }
+
   return NextResponse.json({ ok: true });
 }

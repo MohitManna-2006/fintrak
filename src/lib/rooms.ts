@@ -23,6 +23,8 @@ export function computeUserBalance(
   transactions: TxForBalance[],
   settlements: SettlementForBalance[],
 ): number {
+  // No transactions = no debts — settlements alone cannot create a balance
+  if (transactions.length === 0) return 0;
   let balance = 0;
   for (const tx of transactions) {
     if (tx.paidByUserId === userId) balance += tx.amount;
