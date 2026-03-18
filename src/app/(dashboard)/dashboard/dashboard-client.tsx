@@ -1,10 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
-  Bell, Plus, ChevronRight, Zap, CreditCard, Target, PieChart as PieChartIcon
+  AlertTriangle, BarChart2, Bell, Check, ChevronRight,
+  CreditCard, Plus, Target, Zap, PieChart as PieChartIcon, X,
 } from "lucide-react";
+
+type AppNotification = {
+  id: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+const NOTIF_CONFIG: Record<
+  string,
+  { label: string; icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>; color: string }
+> = {
+  budget_warning: { label: "Budget Alert",    icon: AlertTriangle, color: "#e8a000" },
+  goal_pace:      { label: "Goal at Risk",    icon: Target,        color: "#ff4455" },
+  category_spike: { label: "Spending Spike",  icon: BarChart2,     color: "#ff4455" },
+  trajectory_alert: { label: "Month Forecast", icon: AlertTriangle, color: "#e8a000" },
+};
+const NOTIF_DEFAULT = { label: "Notification", icon: Bell, color: "#72727e" };
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
   Tooltip, PieChart, Pie, Cell
@@ -139,6 +169,62 @@ export default function DashboardClient(props: DashboardClientProps) {
   const isMobile = useWindowWidth() < 1024;
   const chartH = isMobile ? 180 : 218;
 
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifPos, setNotifPos] = useState<{ top: number; right: number } | null>(null);
+  const [markingRead, setMarkingRead] = useState(false);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        bellRef.current !== e.target && !bellRef.current?.contains(e.target as Node)
+      ) setNotifOpen(false);
+    }
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") setNotifOpen(false); }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [notifOpen]);
+
+  function handleBellClick() {
+    const rect = bellRef.current?.getBoundingClientRect();
+    if (rect) {
+      setNotifPos({ top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) });
+    }
+    setNotifOpen((prev) => !prev);
+  }
+
+  async function markAllRead() {
+    if (unreadCount === 0) return;
+    setMarkingRead(true);
+    try {
+      await fetch("/api/notifications", { method: "PATCH" });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } finally { setMarkingRead(false); }
+  }
+
   const prevMonthName = MONTH_NAMES[(props.month - 2 + 12) % 12];
   const subtitle = `// ${MONTH_NAMES[props.month - 1]} ${props.year}`;
 
@@ -167,19 +253,119 @@ export default function DashboardClient(props: DashboardClientProps) {
           <div style={{ fontFamily: "var(--font-space-mono)", fontSize: 11, color: "#72727e", opacity: 0.75, marginTop: 5, letterSpacing: "0.06em" }}>{subtitle}</div>
         </div>
         <div className="mt-3 w-full lg:mt-0 lg:w-auto" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div className="hidden lg:flex" style={{
-            width: 32, height: 32, borderRadius: 6,
-            background: "#131318", border: "1px solid rgba(255,255,255,0.055)",
-            alignItems: "center", justifyContent: "center",
-            cursor: "pointer", position: "relative",
-          }}>
-            <Bell size={12} color="#72727e" strokeWidth={1.5} />
-            <div style={{
-              position: "absolute", top: 6, right: 6, width: 5, height: 5,
-              borderRadius: "50%", background: "#00c896",
-              border: "1.5px solid #0c0c0f", boxShadow: "0 0 6px #00c896",
-            }} />
-          </div>
+          <button
+            ref={bellRef}
+            type="button"
+            aria-label="Notifications"
+            onClick={handleBellClick}
+            className="hidden lg:flex"
+            style={{
+              width: 32, height: 32, borderRadius: 6,
+              background: "#131318", border: "1px solid rgba(255,255,255,0.055)",
+              alignItems: "center", justifyContent: "center",
+              cursor: "pointer", position: "relative", flexShrink: 0,
+              color: unreadCount > 0 ? "#f0f0f4" : "#72727e",
+            }}
+          >
+            <Bell size={12} strokeWidth={1.5} />
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: 5, right: 5,
+                minWidth: 14, height: 14, borderRadius: 7,
+                background: "#ff4455", border: "1.5px solid #131318",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-space-mono)", fontSize: 8,
+                fontWeight: 700, color: "#fff", lineHeight: 1, padding: "0 3px",
+              }}>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notification dropdown */}
+          {notifOpen && notifPos && (
+            <div ref={dropdownRef} style={{
+              position: "fixed", zIndex: 300,
+              top: notifPos.top, right: notifPos.right,
+              width: 340, maxHeight: 460,
+              display: "flex", flexDirection: "column",
+              background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+              animation: "notifFadeIn 0.15s ease",
+            }}>
+              {/* Header */}
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "14px 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.055)",
+                flexShrink: 0,
+              }}>
+                <span style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 600, color: "#f0f0f4" }}>
+                  Notifications
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} disabled={markingRead} style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      background: "transparent", border: "1px solid rgba(255,255,255,0.055)",
+                      borderRadius: 4, padding: "3px 8px", color: "#72727e",
+                      fontFamily: "var(--font-figtree)", fontSize: 11,
+                      cursor: markingRead ? "default" : "pointer", opacity: markingRead ? 0.5 : 1,
+                    }}>
+                      <Check size={10} strokeWidth={2} /> Mark all read
+                    </button>
+                  )}
+                  <button onClick={() => setNotifOpen(false)} style={{
+                    background: "transparent", border: "none", color: "#72727e",
+                    cursor: "pointer", padding: 2, display: "flex",
+                  }}>
+                    <X size={14} strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
+              {/* List */}
+              <div style={{ overflowY: "auto", flex: 1, scrollbarWidth: "thin", scrollbarColor: "#1a1a21 transparent" }}>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: "32px 16px", textAlign: "center", fontFamily: "var(--font-figtree)", fontSize: 13, color: "#363640" }}>
+                    No notifications yet
+                  </div>
+                ) : notifications.map((n) => {
+                  const cfg = NOTIF_CONFIG[n.type] ?? NOTIF_DEFAULT;
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={n.id} style={{
+                      display: "flex", gap: 10, padding: "12px 16px",
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderLeft: `2px solid ${n.isRead ? "transparent" : cfg.color}`,
+                      background: n.isRead ? "transparent" : "rgba(255,255,255,0.02)",
+                    }}>
+                      <div style={{ flexShrink: 0, paddingTop: 1 }}>
+                        <Icon size={13} color={cfg.color} strokeWidth={1.5} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, gap: 8 }}>
+                          <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: cfg.color, textTransform: "uppercase" }}>
+                            {cfg.label}
+                          </span>
+                          <span style={{ fontFamily: "var(--font-space-mono)", fontSize: 9, color: "#363640", flexShrink: 0 }}>
+                            {timeAgo(n.createdAt)}
+                          </span>
+                        </div>
+                        <div style={{ fontFamily: "var(--font-figtree)", fontSize: 12, color: n.isRead ? "#72727e" : "#b0b0b8", lineHeight: 1.55 }}>
+                          {n.message}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <style>{`
+                @keyframes notifFadeIn {
+                  from { opacity: 0; transform: translateY(6px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
+            </div>
+          )}
           <Link href="/transactions" className="w-full justify-center lg:w-auto" style={{
             display: "flex", alignItems: "center", gap: 5,
             padding: "7px 13px", borderRadius: 6, background: "#00c896",
