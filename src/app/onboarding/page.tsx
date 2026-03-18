@@ -35,6 +35,7 @@ export default async function OnboardingPage() {
             <TrendingUp size={16} color="#000" strokeWidth={2.4} />
           </div>
           <span className="onb-wordmark">Fintrak</span>
+          <span className="onb-beta">BETA</span>
         </div>
 
         <h1 className="onb-title">Let&apos;s set up your workspace</h1>
@@ -92,7 +93,7 @@ export default async function OnboardingPage() {
           background: #0c0c0f;
           border: 1px solid rgba(255, 255, 255, 0.055);
           border-radius: 8px;
-          padding: 30px 26px 24px;
+          padding: 32px;
           position: relative;
           z-index: 1;
           transition: border-color 0.2s ease;
@@ -128,22 +129,37 @@ export default async function OnboardingPage() {
           color: #f0f0f4;
         }
 
+        .onb-beta {
+          font-family: var(--font-space-mono), monospace;
+          font-size: 8px;
+          background: rgba(0, 200, 150, 0.08);
+          color: #00c896;
+          border: 1px solid rgba(0, 200, 150, 0.25);
+          padding: 2px 5px;
+          border-radius: 3px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-weight: 700;
+          line-height: 1;
+        }
+
         .onb-title {
           margin: 0;
           font-family: var(--font-syne), sans-serif;
           font-weight: 800;
-          font-size: 34px;
+          font-size: 26px;
           line-height: 1.1;
           color: #f0f0f4;
-          letter-spacing: -0.4px;
+          letter-spacing: -0.7px;
         }
 
         .onb-subtitle {
           margin-top: 12px;
-          margin-bottom: 24px;
+          margin-bottom: 30px;
+          font-family: var(--font-figtree), sans-serif;
           color: #72727e;
-          font-size: 14px;
-          line-height: 1.45;
+          font-size: 13px;
+          line-height: 1.5;
           font-weight: 300;
         }
       `}</style>

@@ -98,6 +98,33 @@ export async function POST(request: Request) {
         })),
       });
     }
+
+    if (monthlyIncome > 0) {
+      const monthStart = new Date(Date.UTC(year, month - 1, 1));
+      const monthEnd = new Date(Date.UTC(year, month, 1));
+
+      const existing = await tx.transaction.findFirst({
+        where: {
+          userId,
+          type: "income",
+          category: "Income",
+          date: { gte: monthStart, lt: monthEnd },
+        },
+      });
+
+      if (!existing) {
+        await tx.transaction.create({
+          data: {
+            userId,
+            amount: monthlyIncome,
+            type: "income",
+            category: "Income",
+            description: "Monthly Salary",
+            date: monthStart,
+          },
+        });
+      }
+    }
   });
 
   return NextResponse.json({ success: true });

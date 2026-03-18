@@ -165,7 +165,7 @@ export function OnboardingForm({
         {Array.from({ length: 4 }).map((_, idx) => (
           <div
             key={idx}
-            className={`progress-dot ${idx <= activeSection || idx < completedCount ? "active" : ""}`}
+            className={`progress-dot ${idx < completedCount ? "active" : ""}`}
           />
         ))}
       </div>
@@ -324,12 +324,13 @@ export function OnboardingForm({
 
         .section-label {
           display: block;
-          margin-bottom: 9px;
+          margin-bottom: 12px;
           font-family: var(--font-space-mono), monospace;
           font-size: 9px;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.12em;
-          color: #363640;
+          letter-spacing: 0.15em;
+          color:rgb(152, 152, 168);
         }
 
         .input-wrap {
@@ -358,11 +359,12 @@ export function OnboardingForm({
           font-size: 13px;
           font-family: var(--font-figtree), sans-serif;
           outline: none;
-          transition: border-color 0.18s ease;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .onb-input:focus {
           border-color: rgba(0, 200, 150, 0.4);
+          box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.08), 0 0 12px rgba(0, 200, 150, 0.1);
         }
 
         .onb-input::placeholder {
@@ -376,6 +378,13 @@ export function OnboardingForm({
         .onb-num {
           font-family: var(--font-space-mono), monospace;
           font-variant-numeric: tabular-nums;
+          -moz-appearance: textfield;
+        }
+
+        .onb-num::-webkit-outer-spin-button,
+        .onb-num::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
         }
 
         .goals-grid {
@@ -388,7 +397,7 @@ export function OnboardingForm({
           border-radius: 6px;
           border: 1px solid rgba(255, 255, 255, 0.055);
           background: #0c0c0f;
-          color: #c7c7d0;
+          color: #72727e;
           text-align: left;
           padding: 11px 12px;
           font-family: var(--font-figtree), sans-serif;
@@ -405,6 +414,7 @@ export function OnboardingForm({
           background: rgba(0, 200, 150, 0.08);
           border-color: rgba(0, 200, 150, 0.35);
           color: #00c896;
+          font-weight: 500;
         }
 
         .budget-list {
@@ -418,6 +428,10 @@ export function OnboardingForm({
           grid-template-columns: minmax(0, 1fr) 132px;
           gap: 10px;
           align-items: center;
+          background: #131318;
+          border: 1px solid rgba(255, 255, 255, 0.055);
+          border-radius: 6px;
+          padding: 9px 12px;
         }
 
         .budget-name {
@@ -438,11 +452,12 @@ export function OnboardingForm({
 
         .budget-input {
           text-align: right;
+          font-size: 12px;
         }
 
         .budget-note {
           margin-top: 8px;
-          color: #363640;
+          color: #72727e;
           font-size: 11px;
           line-height: 1.4;
         }
